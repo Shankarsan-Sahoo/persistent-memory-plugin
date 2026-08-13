@@ -5,9 +5,32 @@ import re
 from pathlib import Path
 
 # Paths
-USER_PROFILE = os.environ.get("USERPROFILE", "C:\\Users\\shank")
+USER_PROFILE = os.environ.get("USERPROFILE", str(Path.home()))
 BRAIN_DIR = Path(USER_PROFILE) / ".gemini" / "antigravity-ide" / "brain"
 DB_PATH = Path(__file__).resolve().parent.parent / "memory.db"
+
+STOPWORDS = {"the", "a", "an", "is", "are", "to", "for", "and", "or", "in", "on", "of", "with", "this", "that", "it", "can", "you", "fix", "make", "do", "how", "what", "where", "why", "please", "just", "now", "then"}
+
+def extract_keywords(text):
+    """Tokenize free text into cleaned search keywords, preserving hyphenated compounds
+    (e.g. 'docker-compose') as single phrase terms safe for FTS5."""
+    tokens = re.findall(r'[a-z0-9]+(?:-[a-z0-9]+)*', (text or '').lower())
+    keywords = []
+    for token in tokens:
+        parts = [p for p in token.split('-') if p]
+        if all(p in STOPWORDS for p in parts):
+            continue
+        if not any(len(p) > 3 for p in parts):
+            continue
+        keywords.append(token)
+    return keywords
+
+def build_safe_fts_query(text, max_terms=30):
+    """Convert free text into an FTS5-safe quoted-token OR query."""
+    keywords = extract_keywords(text)
+    if not keywords:
+        return None
+    return " OR ".join(f'"{kw}"' for kw in keywords[:max_terms])
 
 def init_db(silent=False):
     if not silent:

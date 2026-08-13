@@ -2,7 +2,7 @@ import sqlite3
 from mcp.server.fastmcp import FastMCP
 
 from pathlib import Path
-from harness import init_db
+from harness import init_db, build_safe_fts_query, extract_keywords
 
 # Initialize FastMCP server
 mcp = FastMCP("PersistentMemory")
@@ -20,6 +20,12 @@ def search_past_memory(query: str, limit: int = 5) -> str:
         limit: Maximum number of messages to return.
     """
     try:
+        fts_query = build_safe_fts_query(query)
+        if not fts_query:
+            return f"No past memory found for query: '{query}'"
+            
+        keywords = extract_keywords(query)
+        
         conn = init_db(silent=True)
         c = conn.cursor()
         
@@ -30,7 +36,7 @@ def search_past_memory(query: str, limit: int = 5) -> str:
             WHERE messages_fts MATCH ?
             ORDER BY rank
             LIMIT ?
-        ''', (query, limit))
+        ''', (fts_query, limit))
         
         results = c.fetchall()
         conn.close()
@@ -43,11 +49,11 @@ def search_past_memory(query: str, limit: int = 5) -> str:
             
             # Smart Context Windowing (Python-based)
             # Find the match and extract 1000 chars before and after for proper AI context
-            query_lower = query.lower()
             content_lower = content.lower()
-            idx = content_lower.find(query_lower)
+            first_keyword = next((kw for kw in keywords if kw in content_lower), None)
             
-            if idx != -1:
+            if first_keyword:
+                idx = content_lower.find(first_keyword)
                 start_idx = max(0, idx - 1000)
                 end_idx = min(len(content), idx + 1000)
                 

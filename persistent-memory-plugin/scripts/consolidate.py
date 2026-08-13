@@ -2,7 +2,7 @@ import sqlite3
 import re
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "memory.db"
+DB_PATH = Path(__file__).resolve().parent.parent / "memory.db"
 
 def extract_rules(text):
     rules = []

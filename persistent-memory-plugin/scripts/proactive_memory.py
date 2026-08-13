@@ -3,6 +3,7 @@ import json
 import sqlite3
 import re
 from pathlib import Path
+from harness import build_safe_fts_query, extract_keywords
 
 DB_PATH = Path(__file__).resolve().parent.parent / "memory.db"
 
@@ -13,27 +14,19 @@ def extract_last_user_prompt(transcript_path):
             # Search backwards for the last USER_INPUT
             for line in reversed(lines):
                 if not line.strip(): continue
-                step = json.loads(line)
+                try:
+                    step = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
                 if step.get("type") == "USER_INPUT":
                     content = step.get("content", "")
                     clean_content = re.sub(r'<USER_REQUEST>\n?(.*?)\n?</USER_REQUEST>.*', r'\1', content, flags=re.DOTALL).strip()
                     return clean_content
-    except Exception as e:
+    except Exception:
         return None
     return None
 
-def build_fts_query(prompt):
-    words = re.findall(r'\b\w+\b', prompt.lower())
-    stopwords = {"the", "a", "an", "is", "are", "to", "for", "and", "or", "in", "on", "of", "with", "this", "that", "it", "can", "you", "fix", "make", "do", "how", "what", "where", "why", "please", "just", "now", "then"}
-    keywords = [w for w in words if w not in stopwords and len(w) > 3]
-    
-    if not keywords:
-        return None
-        
-    # Use OR to find any relevant matches
-    return " OR ".join(keywords)
-
-def search_memory(query):
+def search_memory(query, keywords):
     if not DB_PATH.exists():
         return None
         
@@ -60,10 +53,9 @@ def search_memory(query):
         formatted_results.append("The system has automatically retrieved relevant past context based on your prompt:\n")
         
         for workspace, role, content, timestamp, rank in results:
-            query_lower = query.lower()
             content_lower = content.lower()
             # Simple keyword highlighting for snippet extraction
-            first_keyword = next((kw for kw in query.split(" OR ") if kw in content_lower), None)
+            first_keyword = next((kw for kw in keywords if kw in content_lower), None)
             
             if first_keyword:
                 idx = content_lower.find(first_keyword)
@@ -107,12 +99,13 @@ def main():
         print(json.dumps({}))
         return
         
-    fts_query = build_fts_query(prompt)
+    keywords = extract_keywords(prompt)
+    fts_query = build_safe_fts_query(prompt)
     if not fts_query:
         print(json.dumps({}))
         return
         
-    memory_context = search_memory(fts_query)
+    memory_context = search_memory(fts_query, keywords)
     
     if memory_context:
         output = {
