@@ -66,6 +66,10 @@ This gives your agent memory access across every codebase on your machine.
      ]
    }
    ```
+   
+   > [!NOTE]
+   > **`plugin.json` vs `plugins.json`**
+   > This repository includes a singular `plugin.json` which acts as the manifest for this specific plugin. However, to turn it on, you must add it to your machine's global plural `plugins.json` configuration file, which acts as the master switchboard for all your installed plugins.
 
 ### Workspace Installation
 If you want a team to share this memory agent on a specific project only, you can install it locally to that project:
