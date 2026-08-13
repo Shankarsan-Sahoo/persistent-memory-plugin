@@ -2,6 +2,7 @@ import sqlite3
 from mcp.server.fastmcp import FastMCP
 
 from pathlib import Path
+from harness import init_db
 
 # Initialize FastMCP server
 mcp = FastMCP("PersistentMemory")
@@ -19,7 +20,7 @@ def search_past_memory(query: str, limit: int = 5) -> str:
         limit: Maximum number of messages to return.
     """
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = init_db(silent=True)
         c = conn.cursor()
         
         c.execute('''
@@ -78,7 +79,7 @@ def get_user_profile() -> str:
     Always check this to ensure you are following the user's coding style and preferences.
     """
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = init_db(silent=True)
         c = conn.cursor()
         c.execute("SELECT rule, timestamp FROM user_profile ORDER BY timestamp DESC")
         results = c.fetchall()

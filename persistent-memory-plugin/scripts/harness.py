@@ -9,8 +9,9 @@ USER_PROFILE = os.environ.get("USERPROFILE", "C:\\Users\\shank")
 BRAIN_DIR = Path(USER_PROFILE) / ".gemini" / "antigravity-ide" / "brain"
 DB_PATH = Path(__file__).parent.parent / "memory.db"
 
-def init_db():
-    print(f"Initializing database at {DB_PATH.absolute()}...")
+def init_db(silent=False):
+    if not silent:
+        print(f"Initializing database at {DB_PATH.absolute()}...")
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
