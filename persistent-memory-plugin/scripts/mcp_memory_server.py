@@ -7,7 +7,7 @@ from harness import init_db
 # Initialize FastMCP server
 mcp = FastMCP("PersistentMemory")
 
-DB_PATH = Path(__file__).parent.parent / "memory.db"
+DB_PATH = Path(__file__).resolve().parent.parent / "memory.db"
 
 @mcp.tool()
 def search_past_memory(query: str, limit: int = 5) -> str:

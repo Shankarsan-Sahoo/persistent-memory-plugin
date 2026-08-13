@@ -7,7 +7,7 @@ from pathlib import Path
 # Paths
 USER_PROFILE = os.environ.get("USERPROFILE", "C:\\Users\\shank")
 BRAIN_DIR = Path(USER_PROFILE) / ".gemini" / "antigravity-ide" / "brain"
-DB_PATH = Path(__file__).parent.parent / "memory.db"
+DB_PATH = Path(__file__).resolve().parent.parent / "memory.db"
 
 def init_db(silent=False):
     if not silent:
