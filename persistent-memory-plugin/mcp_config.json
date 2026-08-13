@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "persistent-memory": {
+      "command": "python",
+      "args": ["./scripts/mcp_memory_server.py"]
+    }
+  }
+}

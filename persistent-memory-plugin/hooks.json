@@ -1,0 +1,20 @@
+{
+  "persistent-memory-hook": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python ./scripts/proactive_memory.py"
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python ./scripts/harness.py update"
+      },
+      {
+        "type": "command",
+        "command": "python ./scripts/consolidate.py"
+      }
+    ]
+  }
+}
